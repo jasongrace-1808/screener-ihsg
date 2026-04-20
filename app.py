@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 from ta.momentum import RSIIndicator
 
-st.title("📈 Screener Saham IHSG (Fixed)")
+st.title("📈 Screener Saham IHSG (Stable Version)")
 
 saham_list = ["BBCA.JK", "BBRI.JK", "TLKM.JK"]
 
@@ -16,15 +16,22 @@ for saham in saham_list:
         if data.empty or len(data) < 20:
             continue
 
+        # RESET INDEX biar aman
+        data = data.reset_index()
+
+        # MA20
         data['MA20'] = data['Close'].rolling(20).mean()
 
-        # FIX ERROR DIMENSI
+        # FIX CLOSE
         close = data['Close']
         if isinstance(close, pd.DataFrame):
             close = close.squeeze()
 
-        rsi = RSIIndicator(close=close, window=14)
-        data['RSI'] = rsi.rsi()
+        # HITUNG RSI
+        rsi = RSIIndicator(close=close, window=14).rsi()
+
+        # PAKSA SEJAJAR
+        data['RSI'] = rsi.values
 
         last = data.iloc[-1]
         avg_volume = data['Volume'].mean()
@@ -45,5 +52,5 @@ for saham in saham_list:
 
 df = pd.DataFrame(hasil)
 
-st.subheader("🔥 Kandidat")
+st.subheader("🔥 Kandidat Potensi Naik")
 st.dataframe(df)
