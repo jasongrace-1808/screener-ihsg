@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 from ta.momentum import RSIIndicator
 
-st.title("📈 Screener Saham IHSG (Simple)")
+st.title("📈 Screener Saham IHSG (Fixed)")
 
 saham_list = ["BBCA.JK", "BBRI.JK", "TLKM.JK"]
 
@@ -13,13 +13,17 @@ for saham in saham_list:
     try:
         data = yf.download(saham, period="5d", interval="15m")
 
-        # CEK kalau data kosong
         if data.empty or len(data) < 20:
             continue
 
         data['MA20'] = data['Close'].rolling(20).mean()
 
-        rsi = RSIIndicator(close=data['Close'], window=14)
+        # FIX ERROR DIMENSI
+        close = data['Close']
+        if isinstance(close, pd.DataFrame):
+            close = close.squeeze()
+
+        rsi = RSIIndicator(close=close, window=14)
         data['RSI'] = rsi.rsi()
 
         last = data.iloc[-1]
@@ -32,8 +36,8 @@ for saham in saham_list:
         ):
             hasil.append({
                 "Saham": saham,
-                "Harga": round(last['Close'], 2),
-                "RSI": round(last['RSI'], 2)
+                "Harga": round(float(last['Close']), 2),
+                "RSI": round(float(last['RSI']), 2)
             })
 
     except Exception as e:
